@@ -8,7 +8,7 @@ import About from "./landing_page/about/About.jsx";
 import NoticePage from "./landing_page/notice/NoticePage.jsx";
 import PyqMain from "./landing_page/pyq/PyqMainj.jsx";
 import ResultMain from "./landing_page/result/ResultMain.jsx";
-import TopperPage from "./landing_page/topper/Topperpage.jsx";
+import MainTopper from "./landing_page/topper/MainTopper.jsx";
 import Footer from "./landing_page/Footer.jsx";
 
 import LoginPage from "./component/LoginPage.jsx";
@@ -46,7 +46,7 @@ root.render(
         <Route path="notice" element={<NoticePage />} />
         {/* <Route path="pyq" element={<PyqMain />} /> */}
         <Route path="result" element={<ResultMain />} />
-        <Route path="topper" element={<TopperPage />} />
+        <Route path="topper" element={<MainTopper/>} />
         <Route path="profile" element={<Profile />} />
       </Route>
     </Routes>

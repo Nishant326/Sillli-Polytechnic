@@ -1,5 +1,5 @@
 // ...existing code...
-function TopperSection() {
+function MainTopper() {
   const toppers = [
     {
       id: 1,
@@ -62,4 +62,4 @@ function TopperSection() {
 }
 
 
-export default TopperSection;
+export default MainTopper;

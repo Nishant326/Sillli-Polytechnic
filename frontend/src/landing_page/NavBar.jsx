@@ -40,11 +40,11 @@ function Navbar() {
                 Notice
               </Link>
             </li>
-            <li className="nav-item nav-element">
+            {/* <li className="nav-item nav-element">
               <Link className="nav-link  active" to="/pyq">
                 PYQ
               </Link>
-            </li>
+            </li> */}
             <li className="nav-item nav-element">
               <Link className="nav-link  active" to="/result">
                 Result
