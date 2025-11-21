@@ -1,0 +1,41 @@
+
+.box2 {
+    height: 12rem;
+    margin-left: 2rem;
+    margin-right: 2rem;
+    border: 1px solid rgb(223, 218, 218);
+    border-radius: 5px;
+    background-color: rgb(255, 255, 255);
+    text-align: center;
+    transition: all 0.3s ease; /* smooth transition */
+    cursor: pointer;
+}
+
+.box2:hover {
+    background-color: #f4f4f4; /* blue background on hover */
+    transform: translateY(-5px) scale(1.02); /* lift up and slightly bigger */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* subtle shadow */
+}
+
+
+
+.box2 i {
+  color: #007bff;
+}
+
+.box2 h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0.5rem 0 1rem 0;
+}
+
+.box2 button {
+  background-color: #007bff;
+  border: none;
+  color: white;
+  padding: 0.5rem 1.5rem;
+  border-radius: 25px;
+  transition: 0.3s;
+  font-weight: 500;
+}
