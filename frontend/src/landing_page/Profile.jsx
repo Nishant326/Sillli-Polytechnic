@@ -1,119 +1,134 @@
 import React, { useEffect, useState } from "react";
-import { auth, db } from "../firebase";
-import { doc, getDoc } from "firebase/firestore";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import { toast } from "react-toastify";
 
 const Profile = () => {
-  const [imagePreview, setImagePreview] = useState(null);
-  const [userDetails, setUserDetails] = useState({});
-
-  const fetchUserDetails = async () => {
-    auth.onAuthStateChanged(async (user) => {
-      console.log(user);
-      const docRef = doc(db, "Users", user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setUserDetails(docSnap.data());
-        console.log("User Details:", docSnap.data());
-      } else {
-        console.log("User is not logged in");
-      }
-    });
-  };
-
+  const [userDetails, setUserDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    try{
-      await auth.signOut()
+  // Replace with your actual backend URL
+  const API_URL = "http://localhost:3000/auth/me"; 
+  const LOGOUT_URL = "http://localhost:3000/auth/logout";
+  // 1. Fetch User Data
+  const fetchUserDetails = async () => {
+    try {
+      const response = await axios.get(`${API_URL}`, {
+        withCredentials: true, // IMPORTANT: Sends the session cookie
+      });
+      console.log("Profile response:", response);
+      if (response.status === 200) {
+        setUserDetails(response.data.user);
+      }
+    } catch (err) {
+      console.error("Error fetching profile:", err);
+      toast.error("Session expired. Please login again.");
       navigate("/login");
-    }catch(err){
-      console.log("Logout error:",err.message);
+    } finally {
+      setLoading(false);
     }
-  }
+  };
+
+  // 2. Handle Logout
+  const handleLogout = async () => {
+    try {
+      await axios.post(`${LOGOUT_URL}`, {}, {
+        withCredentials: true,
+      });
+      toast.success("Logged out successfully");
+      navigate("/login");
+    } catch (err) {
+      console.error("Logout error:", err);
+      toast.error("Logout failed");
+    }
+  };
 
   useEffect(() => {
     fetchUserDetails();
   }, []);
 
-  // Temporary example data (replace with real user data)
-  const name = userDetails.fullName;
-  const roll = userDetails.classId;
-  const email = userDetails.email;
-  const batch = "2023–26";
+  if (loading) {
+    return <div className="text-center mt-5">Loading Profile...</div>;
+  }
 
-  const defaultLetter = name ? name.charAt(0).toUpperCase() : "?";
+  if (!userDetails) {
+    return <div className="text-center mt-5">No user data found.</div>;
+  }
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImagePreview(URL.createObjectURL(file));
-    }
+  // Generate initial for avatar
+  const defaultLetter = userDetails.name ? userDetails.name.charAt(0).toUpperCase() : "?";
+
+  // Helper to format date (YYYY-MM-DD -> DD Month YYYY)
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
   return (
-    <div className="container my-4 d-flex justify-content-center">
-      <div
-        className="card shadow p-4"
-        style={{ width: "100%", maxWidth: "550px" }}
-      >
-        <h3 className="text-center mb-4 fs-4">My Profile</h3>
+    <div className="container my-5 d-flex justify-content-center">
+      <div className="card shadow" style={{ width: "100%", maxWidth: "600px", borderRadius: "15px" }}>
+        
+        {/* Header Section */}
+        <div className="card-header bg-primary text-white text-center py-4" style={{ borderTopLeftRadius: "15px", borderTopRightRadius: "15px" }}>
+           <div className="mx-auto mb-3 bg-white text-primary rounded-circle d-flex justify-content-center align-items-center shadow"
+             style={{ width: "100px", height: "100px", fontSize: "40px", fontWeight: "bold" }}>
+             {defaultLetter}
+           </div>
+           <h3 className="mb-0">{userDetails.name}</h3>
+           <span className="badge bg-light text-primary mt-2">{userDetails.branch} - Sem {userDetails.semester}</span>
+        </div>
 
-        {/* Profile Image / Initial */}
-        <div className="text-center mb-4">
-          {imagePreview ? (
-            <img
-              src={imagePreview}
-              alt="Profile"
-              className="rounded-circle"
-              width="130"
-              height="130"
-              style={{ objectFit: "cover" }}
-            />
-          ) : (
-            <div
-              className="rounded-circle text-center d-flex justify-content-center align-items-center bg-primary text-white"
-              style={{
-                width: "130px",
-                height: "130px",
-                fontSize: "50px",
-                fontWeight: "bold",
-              }}
-            >
-              {defaultLetter}
+        {/* Body Section */}
+        <div className="card-body p-4">
+          <h5 className="text-muted mb-4 border-bottom pb-2">Student Information</h5>
+
+          <div className="row g-3">
+            {/* Roll Number */}
+            <div className="col-md-6">
+              <label className="small text-muted fw-bold">Reg. Number</label>
+              <p className="fs-5">{userDetails.reg_no || "N/A"}</p>
             </div>
-          )}
-        </div>
 
-        {/* Info Fields */}
-        <div className="mb-3">
-          <p className="fs-5">
-            Name: <span>{name}</span>{" "}
-          </p>
-        </div>
+            {/* Class ID */}
+            <div className="col-md-6">
+              <label className="small text-muted fw-bold">Class ID</label>
+              <p className="fs-5">{userDetails.roll_no || "N/A"}</p>
+            </div>
 
-        <div className="mb-3">
-          <p className="fs-5">
-            Roll Number: <span>{roll}</span>
-          </p>
-        </div>
+            {/* Email */}
+            <div className="col-12">
+              <label className="small text-muted fw-bold">Email Address</label>
+              <p className="fs-5">{userDetails.email}</p>
+            </div>
 
-        <div className="mb-3">
-          <p className="fs-5">
-            Email ID: <span>{email}</span>
-          </p>
-        </div>
+             {/* DOB */}
+             <div className="col-md-6">
+              <label className="small text-muted fw-bold">Date of Birth</label>
+              <p className="fs-5">{formatDate(userDetails.dob)}</p>
+            </div>
 
-        <div className="mb-3">
-          <p className="fs-5">
-            Batch: <span>{batch}</span>
-          </p>
-        </div>
-        <div className="mb-3">
-          <button type="button" className="btn btn-outline-danger" onClick={handleLogout}>
-            Logout <span><i className="fa-solid fa-arrow-right-from-bracket" style={{fontSize: "14px"}}></i></span> 
-          </button>
+             {/* Branch */}
+             <div className="col-md-6">
+              <label className="small text-muted fw-bold">Branch</label>
+              <p className="fs-5">{userDetails.branch}</p>
+            </div>
+          </div>
+
+          <hr className="my-4" />
+
+          {/* Action Buttons */}
+          <div className="d-grid gap-2">
+            
+            
+
+            {/* Logout Button */}
+            <button className="btn btn-danger" onClick={handleLogout}>
+              Logout <i className="fa-solid fa-arrow-right-from-bracket ms-2"></i>
+            </button>
+          </div>
+
         </div>
       </div>
     </div>

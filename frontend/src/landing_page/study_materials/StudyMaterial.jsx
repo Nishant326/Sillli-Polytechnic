@@ -1,10 +1,10 @@
 import Branch from "./Branch";
 
 
-function ResultMain() {
+function StudyMaterial() {
     return (
         <Branch/>
     )
 }
 
-export default ResultMain;
+export default StudyMaterial;
