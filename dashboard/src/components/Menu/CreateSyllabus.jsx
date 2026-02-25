@@ -1,13 +1,16 @@
 import React, { useState } from "react";
 import { Calendar, FileText, Send, FileUp } from "lucide-react";
+import axios from "axios";
 
 const CreateSyllabus = () => {
   const [syllabus, setSyllabus] = useState({
     title: "",
-    semester:"",
-    year:"",
+    semester: "",
+    year: "",
+    branch: "",
     pdf: null,
   });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -23,28 +26,38 @@ const CreateSyllabus = () => {
     setSyllabus({ ...syllabus, pdf: file });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+
     if (!syllabus.pdf) {
       alert("Please upload a PDF file before submitting.");
+      setLoading(false);
       return;
     }
 
-    // You can send data using FormData for backend upload
     const formData = new FormData();
     formData.append("title", syllabus.title);
     formData.append("semester", syllabus.semester);
     formData.append("year", syllabus.year);
-    formData.append("pdf", syllabus.pdf);
+    formData.append("branch", syllabus.branch);
+    formData.append("pdf", syllabus.pdf); // ✅ UNCOMMENTED
 
-    console.log("Syllabus created:", syllabus);
-    alert("✅ Syllabus created successfully with PDF!");
-
-    // Later: connect with backend using fetch/axios
-    // Example:
-    // fetch("/api/syllabus", { method: "POST", body: formData })
-    setSyllabus({ title: "", semester: "", year: "", pdf: null });
-    document.getElementById("pdfInput").value = "";
+    try {
+      await axios.post("http://localhost:3000/syllabus", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data", // ✅ ADDED
+        },
+      });
+      alert("✅ Syllabus created successfully!");
+      setSyllabus({ title: "", semester: "", year: "", branch: "", pdf: null });
+      document.getElementById("pdfInput").value = "";
+    } catch (error) {
+      console.error(error);
+      alert(`❌ Error: ${error.response?.data?.message || error.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -56,7 +69,7 @@ const CreateSyllabus = () => {
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Syllabus Title */}
+          {/* Title */}
           <div>
             <label className="block font-semibold mb-2 text-gray-700">
               Syllabus Title
@@ -72,20 +85,51 @@ const CreateSyllabus = () => {
             />
           </div>
 
-          {/* Syllabus Description */}
+          {/* Branch Selection */}
+          <div>
+            <label className="block font-semibold mb-2 text-gray-700">
+              Select Branch
+            </label>
+            <select
+              name="branch"
+              value={syllabus.branch}
+              onChange={handleChange}
+              required
+              className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+            >
+              <option value="">-- Select Branch --</option>
+              <option value="COMPUTER SCIENCE ENGINEERING">
+                COMPUTER SCIENCE ENGINEERING
+              </option>
+              <option value="MECHANICAL ENGINEERING">
+                MECHANICAL ENGINEERING
+              </option>
+              <option value="ELECTRICAL ENGINEERING">
+                ELECTRICAL ENGINEERING
+              </option>
+              <option value="CIVIL ENGINEERING">CIVIL ENGINEERING</option>
+              <option value="ELECTRICAL AND COMMUNICATION ENGINEERING">
+                ELECTRICAL AND COMMUNICATION ENGINEERING
+              </option>
+            </select>
+          </div>
+
+          {/* Semester */}
           <div>
             <label className="block font-semibold mb-2 text-gray-700">
               Semester
             </label>
-            <textarea
+            <input
+              type="number"
               name="semester"
-              placeholder="Enter Semester detals..."
+              placeholder="Enter semester (1-8)"
               value={syllabus.semester}
               onChange={handleChange}
               required
-              rows="1"
-              className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-            ></textarea>
+              min="1"
+              max="8"
+              className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+            />
           </div>
 
           {/* Year */}
@@ -123,13 +167,14 @@ const CreateSyllabus = () => {
             )}
           </div>
 
-          {/* Submit Button */}
+          {/* Submit */}
           <button
             type="submit"
-            className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all duration-300"
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all duration-300 disabled:bg-gray-400"
           >
             <Send className="w-5 h-5" />
-            Create Syllabus
+            {loading ? "Creating..." : "Create Syllabus"}
           </button>
         </form>
       </div>

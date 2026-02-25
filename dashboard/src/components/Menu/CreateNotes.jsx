@@ -1,18 +1,16 @@
 import React, { useState } from "react";
 import { Calendar, FileText, Send, FileUp } from "lucide-react";
 import axios from "axios";
-const CreateTopper = () => {
-  const [topper, setTopper] = useState({
-    name: "",
-    branch: "",
+const CreateNotes = () => {
+  const [notes, setNotes] = useState({
+    title: "",
     semester: "",
-    year: "",
-    rankNum: "",
-    percentage: "",
-    image: null,
+    branch: "",
+    subject: "",
+    pdf: null,
+    unit:"",
   });
-
-  const branches = [
+ const branches = [
     { code: "CSE", name: "COMPUTER SCIENCE ENGINEERING" },
     { code: "ECE", name: "ELECTRONIC AND COMMUNICATION ENGINEERING" },
     { code: "EEE", name: "ELECTRICAL  ENGINEERING" },
@@ -22,47 +20,56 @@ const CreateTopper = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setTopper({ ...topper, [name]: value });
+    setNotes({ ...notes, [name]: value });
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file && file.type !== "image/jpeg" && file.type !== "image/png") {
-      alert("Please upload a valid image file (JPEG or PNG) 📄");
+    if (file && file.type !== "application/pdf") {
+      alert("Please upload a valid PDF file 📄");
       return;
     }
-    setTopper({ ...topper, image: file });
+    setNotes({ ...notes, pdf: file });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!topper.image) {
-      alert("Please upload an image file before submitting.");
+
+    if (!notes.pdf) {
+      alert("Please upload a PDF file before submitting.");
       return;
     }
 
-    // You can send data using FormData for backend upload
     const formData = new FormData();
-    formData.append("name", topper.name);
-    formData.append("semester", topper.semester);
-    formData.append("year", topper.year);
-    formData.append("branch", topper.branch);
+    formData.append("title", notes.title);
+    formData.append("subject", notes.subject); // ✅ FIX
+    formData.append("semester", notes.semester);
+    formData.append("branch", notes.branch);
+    formData.append("pdf", notes.pdf);
+    formData.append("unit", notes.unit);
 
-    formData.append("rankNum", topper.rankNum);
-    formData.append("percentage", topper.percentage);
-    formData.append("image", topper.image);
+    try {
+      await axios.post("http://localhost:3000/notes", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-    await axios.post("http://localhost:3000/topper", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+      alert("✅ Notes created successfully with PDF!");
 
-    console.log("Topper created:", topper);
-    alert("✅ Topper created successfully with image!");
-    // Later: connect with backend using fetch/axios
-    // Example:
-    // fetch("/api/results", { method: "POST", body: formData })
-    setTopper({ name: "", semester: "", year: "", rankNum: "", branch: "", image: null });
-    document.getElementById("photoInput").value = "";
+      setNotes({
+        title: "",
+        semester: "",
+        branch: "",
+        subject: "",
+        pdf: null,
+        unit:"",
+      });
+      document.getElementById("pdfInput").value = "";
+    } catch (err) {
+      console.error(err.response?.data || err.message);
+      alert("❌ Failed to create notes");
+    }
   };
 
   return (
@@ -70,57 +77,35 @@ const CreateTopper = () => {
       <div className="bg-white w-full max-w-2xl rounded-2xl shadow-lg p-8">
         <h2 className="text-2xl font-bold flex items-center gap-2 mb-6">
           <FileText className="w-6 h-6 text-blue-600" />
-          Set Topper
+          Create New Notes
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Result Title */}
+          {/* Notes Title */}
           <div>
             <label className="block font-semibold mb-2 text-gray-700">
-              Result Title
+              Title
             </label>
             <input
               type="text"
-              name="name"
-              placeholder="Enter topper name"
-              value={topper.name}
+              name="title"
+              placeholder="Enter notes title"
+              value={notes.title}
               onChange={handleChange}
               required
               className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
 
-          {/* Branch */}
-          <div>
-            <label className="block font-semibold mb-2 text-gray-700 flex items-center gap-2">
-               Branch
-            </label>
-            <select
-              name="branch"
-              id="branch"
-              value={topper.branch}
-              onChange={handleChange}
-              required
-              className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              <option value="">-- Choose Branch --</option>
-              {branches.map((b) => (
-                <option key={b.code} value={b.code}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Result Description */}
           <div>
             <label className="block font-semibold mb-2 text-gray-700">
               Semester
             </label>
             <textarea
+              type="number"
               name="semester"
-              placeholder="Enter semester details..."
-              value={topper.semester}
+              placeholder="Enter Semester detals..."
+              value={notes.semester}
               onChange={handleChange}
               required
               rows="1"
@@ -128,68 +113,72 @@ const CreateTopper = () => {
             ></textarea>
           </div>
 
-          {/* Year */}
+          {/* branch */}
           <div>
             <label className="block font-semibold mb-2 text-gray-700">
-              Year
+              Branch
             </label>
-            <input
-              type="text"
-              name="year"
-              placeholder="Enter year"
-              value={topper.year}
+            <select name="branch"
+              value={notes.branch}
               onChange={handleChange}
-              required
               className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-            />
+            >
+              <option value="">Select Branch</option>
+              {branches.map((branch) => (
+                <option key={branch.code} value={branch.code}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
           </div>
-          {/* Rank */}
+
+          {/* Subject */}
           <div>
             <label className="block font-semibold mb-2 text-gray-700">
-              Rank
+              Subject
             </label>
             <input
               type="text"
-              name="rankNum"
-              placeholder="Enter rank"
-              value={topper.rankNum}
+              name="subject"
+              placeholder="Enter subject"
+              value={notes.subject}
               onChange={handleChange}
               required
               className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
 
-          {/* Percentage */}
-          <div>
+            <div>
             <label className="block font-semibold mb-2 text-gray-700">
-              Percentage
+              Unit
             </label>
-            <input
+            <textarea
               type="number"
-              name="percentage"
-              placeholder="Enter percentage"
-              value={topper.percentage}
+              name="unit"
+              placeholder="Enter Unit details..."
+              value={notes.unit}
               onChange={handleChange}
               required
-              className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-            />
+              rows="1"
+              className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+            ></textarea>
           </div>
 
-          {/* image Upload */}
+          {/* PDF Upload */}
           <div>
             <label className="block font-semibold mb-2 text-gray-700 flex items-center gap-2">
-              <FileUp className="w-5 h-5 text-blue-600" /> Upload Topper Photo
+              <FileUp className="w-5 h-5 text-blue-600" /> Upload Notes PDF
             </label>
             <input
-              id="photoInput"
+              id="pdfInput"
               type="file"
-              accept="image/*"
+              accept=".pdf"
               onChange={handleFileChange}
               className="w-full p-3 border border-gray-300 rounded-xl bg-gray-50 cursor-pointer focus:ring-2 focus:ring-blue-500"
             />
-            {topper.image && (
+            {notes.pdf && (
               <p className="mt-2 text-sm text-green-600">
-                Uploaded: {topper.image.name}
+                Uploaded: {notes.pdf.name}
               </p>
             )}
           </div>
@@ -200,7 +189,7 @@ const CreateTopper = () => {
             className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all duration-300"
           >
             <Send className="w-5 h-5" />
-            Create Topper
+            Create Notes
           </button>
         </form>
       </div>
@@ -208,4 +197,4 @@ const CreateTopper = () => {
   );
 };
 
-export default CreateTopper;
+export default CreateNotes;

@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { Calendar, FileText, Send, FileUp } from "lucide-react";
-
+import axios from "axios";
 const CreateNotice = () => {
   const [notice, setNotice] = useState({
     title: "",
     description: "",
-    date: "",
     pdf: null,
   });
 
@@ -23,7 +22,7 @@ const CreateNotice = () => {
     setNotice({ ...notice, pdf: file });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!notice.pdf) {
       alert("Please upload a PDF file before submitting.");
@@ -34,17 +33,21 @@ const CreateNotice = () => {
     const formData = new FormData();
     formData.append("title", notice.title);
     formData.append("description", notice.description);
-    formData.append("date", notice.date);
     formData.append("pdf", notice.pdf);
 
-    console.log("Notice created:", notice);
+    await axios.post("http://localhost:3000/notice", formData);
+    console.log("Notice created:", formData);
     alert("✅ Notice created successfully with PDF!");
+    console.log(
+      formData
+    )
+    
 
     // Later: connect with backend using fetch/axios
     // Example:
     // fetch("/api/notices", { method: "POST", body: formData })
 
-    setNotice({ title: "", description: "", date: "", pdf: null });
+    setNotice({ title: "", description: "",pdf: null });
     document.getElementById("pdfInput").value = "";
   };
 
@@ -90,19 +93,7 @@ const CreateNotice = () => {
           </div>
 
           {/* Date */}
-          <div>
-            <label className="block font-semibold mb-2 text-gray-700 flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-blue-600" /> Notice Date
-            </label>
-            <input
-              type="date"
-              name="date"
-              value={notice.date}
-              onChange={handleChange}
-              required
-              className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-          </div>
+    
 
           {/* PDF Upload */}
           <div>

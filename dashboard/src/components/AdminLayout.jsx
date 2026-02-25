@@ -16,11 +16,41 @@ function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const sidebarItems = [
-    { id: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
-    { id: "/create-notice", label: "Notice", icon: <Bell className="w-5 h-5" /> },
-    { id: "/create-syllabus", label: "Syllabus", icon: <BookOpen className="w-5 h-5" /> },
-    { id: "/create-result", label: "Results", icon: <FileText className="w-5 h-5" /> },
-    { id: "/create-topper", label: "Topper", icon: <FileBadge className="w-5 h-5" /> },
+    {
+      id: "/dashboard",
+      label: "Dashboard",
+      icon: <LayoutDashboard className="w-5 h-5" />,
+    },
+    {
+      id: "/create-notice",
+      label: "Notice",
+      icon: <Bell className="w-5 h-5" />,
+    },
+    {
+      id: "/create-syllabus",
+      label: "Syllabus",
+      icon: <BookOpen className="w-5 h-5" />,
+    },
+    // {
+    //   id: "/create-result",
+    //   label: "Results",
+    //   icon: <FileText className="w-5 h-5" />,
+    // },
+    {
+      id: "/create-topper",
+      label: "Topper",
+      icon: <FileBadge className="w-5 h-5" />,
+    },
+    {
+      id : "/create-notes",
+      label: "Notes",
+      icon: <BookOpen className="w-5 h-5" />,
+    },
+    {
+      id: "/create-pyq",
+      label: "PYQ",
+      icon: <FileText className="w-5 h-5" />,
+    }
   ];
 
   return (

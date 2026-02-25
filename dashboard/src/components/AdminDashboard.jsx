@@ -1,18 +1,23 @@
 // src/pages/AdminDashboard.jsx
-import { Users, BookOpen, FileText, TrendingUp, TrendingDown } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Users, Bell, BookOpen, FileText, TrendingUp, TrendingDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import axios from "axios";
 
-function StatCard({ title, value, change, trend, icon }) {
+// Reusable StatCard Component
+function StatCard({ title, value, change, trend, icon, color }) {
   return (
-    <Card>
+    <Card className="hover:shadow-lg transition-shadow duration-200">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm text-gray-600">{title}</CardTitle>
-        <div className="text-blue-600">{icon}</div>
+        <CardTitle className="text-sm font-medium text-gray-600">{title}</CardTitle>
+        <div className={`p-2 rounded-lg bg-opacity-10 ${color}`}>
+          {icon}
+        </div>
       </CardHeader>
       <CardContent>
         <div className="flex items-end justify-between">
           <div>
-            <p className="text-3xl text-gray-900">{value}</p>
+            <p className="text-3xl font-bold text-gray-900">{value}</p>
             <div className="flex items-center gap-1 mt-2">
               {trend === "up" ? (
                 <TrendingUp className="w-4 h-4 text-green-600" />
@@ -20,13 +25,13 @@ function StatCard({ title, value, change, trend, icon }) {
                 <TrendingDown className="w-4 h-4 text-red-600" />
               )}
               <span
-                className={`text-sm ${
+                className={`text-sm font-medium ${
                   trend === "up" ? "text-green-600" : "text-red-600"
                 }`}
               >
                 {change}
               </span>
-              <span className="text-sm text-gray-500">vs last month</span>
+              <span className="text-sm text-gray-500 ml-1">vs last update</span>
             </div>
           </div>
         </div>
@@ -36,41 +41,30 @@ function StatCard({ title, value, change, trend, icon }) {
 }
 
 function AdminDashboard() {
-  const stats = [
-    {
-      title: "Total Students",
-      value: "2,847",
-      change: "+12.5%",
-      trend: "up",
-      icon: <Users className="w-5 h-5" />,
-    },
-    {
-      title: "Notice",
-      value: "156",
-      change: "+8.2%",
-      trend: "up",
-      icon: <BookOpen className="w-5 h-5" />,
-    },
-    {
-      title: "Faculty Members",
-      value: "342",
-      change: "+3.1%",
-      trend: "up",
-      icon: <Users className="w-5 h-5" />,
-    },
-    {
-      title: "Applications",
-      value: "489",
-      change: "-2.4%",
-      trend: "down",
-      icon: <FileText className="w-5 h-5" />,
-    },
-  ];
+  const [totalStudents, setTotalStudents] = useState(0);
+
+  const totalNotices = "156";
+  const totalSyllabus = "42";
+  const totalNotes = "1,024";
+
+  // Fetch student count from backend
+  useEffect(() => {
+    const fetchStudentCount = async () => {
+      try {
+        const res = await axios.get("http://localhost:3000/api/students/count");
+        setTotalStudents(res.data.count);
+      } catch (err) {
+        console.error("Failed to fetch student count", err);
+      }
+    };
+
+    fetchStudentCount();
+  }, []);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
+    <div className="max-w-7xl mx-auto space-y-8 p-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
           Dashboard Overview
         </h1>
         <p className="text-gray-600">
@@ -79,9 +73,47 @@ function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <StatCard key={index} {...stat} />
-        ))}
+        
+        {/* Total Students */}
+        <StatCard 
+          title="Students Today" 
+          value={totalStudents} 
+          change="+ live" 
+          trend="up" 
+          icon={<Users className="w-6 h-6 text-blue-600" />}
+          color="bg-blue-500"
+        />
+
+        {/* Notices */}
+        <StatCard 
+          title="Active Notices" 
+          value={totalNotices} 
+          change="+8.2%" 
+          trend="up" 
+          icon={<Bell className="w-6 h-6 text-yellow-600" />} 
+          color="bg-yellow-500"
+        />
+
+        {/* Syllabus */}
+        <StatCard 
+          title="Syllabus Files" 
+          value={totalSyllabus} 
+          change="+2 new" 
+          trend="up" 
+          icon={<BookOpen className="w-6 h-6 text-purple-600" />} 
+          color="bg-purple-500"
+        />
+
+        {/* Notes */}
+        <StatCard 
+          title="Study Notes" 
+          value={totalNotes} 
+          change="+24.5%" 
+          trend="up" 
+          icon={<FileText className="w-6 h-6 text-green-600" />} 
+          color="bg-green-500"
+        />
+
       </div>
     </div>
   );
